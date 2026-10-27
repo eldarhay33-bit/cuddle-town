@@ -124,41 +124,46 @@ GAMES.tennis = (host, cfg, fin) => {
 };
 
 /* =====================================================================
-   FRISBEE — the dog runs under the flight and leaps to catch it
+   FRISBEE — the dog runs under the flight and leaps to catch it.
+   Every throw lands inside the field; a shadow shows where it will come down.
    ===================================================================== */
 GAMES.frisbee = (host, cfg, fin) => {
   const K = killer(), d = cfg.d || .3, W = 360, H = 480, N = cfg.throws || 8;
   const hud = GK.hud(host), c = GK.canvas(host, W, H), cx = c.cx, fx = new GK.Fx();
-  const GY = 400; let dog = { x: 150, y: GY, vy: 0, tx: 150, f: 1 }, fr = null, throwN = 0, pts = 0, catches = 0, wind = 0, t = 0, over = false, state = 'wait', waitT = 0, msg = '';
+  const GY = 400; let dog = { x: 190, y: GY, vy: 0, tx: 190, f: 1 }, fr = null, throwN = 0, pts = 0, catches = 0, wind = 0, t = 0, over = false, state = 'wait', waitT = 0;
   const jumpBtn = mk('button', 'bigbtn', '⬆️ ' + ui('gm_jump')); jumpBtn.style.margin = '4px 0 0'; jumpBtn.style.fontSize = '20px'; jumpBtn.style.padding = '10px 40px'; host.appendChild(jumpBtn);
-  function jump() { if (dog.y >= GY - 1) { dog.vy = -480; sfx('tap'); } }
-  jumpBtn.onpointerdown = e => { e.preventDefault(); jump(); }; GK.keys(K, code => { if (code === 'Space' || code === 'ArrowUp' || code === 'KeyW') jump(); });
-  GK.input(K, c, { down(p) { dog.tx = p.x; }, move(p, e, down) { if (down) dog.tx = p.x; } });
-  const keys = GK.keys(K);
+  function jump() { if (dog.y >= GY - 1) { dog.vy = -520; sfx('tap'); } }
+  jumpBtn.onpointerdown = e => { e.preventDefault(); jump(); }; const keys = GK.keys(K, code => { if (code === 'Space' || code === 'ArrowUp' || code === 'KeyW') jump(); });
+  GK.input(K, c, { down(p) { dog.tx = clamp(p.x, 30, W - 30); }, move(p, e, down) { if (down) dog.tx = clamp(p.x, 30, W - 30); } });
   function launch() {
-    throwN++; if (throwN > N) return end(); wind = rnd(-70, 70) * (.4 + d); const sp = rnd(190, 300 + d * 60), an = rnd(.55, .95);
-    fr = { x: 52, y: 250, vx: sp * Math.cos(an) * 1.15, vy: -sp * Math.sin(an) * .9, rot: 0, got: false, land: false }; state = 'fly'; sfx('pop');
+    throwN++; if (throwN > N) return end();
+    wind = rnd(-60, 60) * (.4 + d);
+    const xt = rnd(120, 305), T = rnd(1.9, 2.7) - d * .45, arc = rnd(120, 190);
+    fr = { x0: 56, y0: 260, xt, T, arc, u: 0, x: 56, y: 260, rot: 0, got: false };
+    state = 'fly'; sfx('pop');
   }
-  function end() { if (over) return; over = true; fin(GK.stars100(pts, 0, N * 13), ['🥏 ' + catches + '/' + N, '⭐ ' + pts]); }
+  function end() { if (over) return; over = true; fin(GK.stars100(pts, 0, N * 11), ['🥏 ' + catches + '/' + N, '⭐ ' + pts]); }
+  const path = (f, u) => ({ x: f.x0 + (f.xt - f.x0) * u + wind * Math.sin(Math.PI * u) * .3, y: f.y0 + (GY - 14 - f.y0) * u * u - f.arc * Math.sin(Math.PI * u) * (1 - u * .35) });
   K.loop(dt => {
     if (over) return; t += dt; fx.update(dt);
-    if (keys.ArrowLeft || keys.KeyA) dog.tx -= 280 * dt; if (keys.ArrowRight || keys.KeyD) dog.tx += 280 * dt; dog.tx = clamp(dog.tx, 30, W - 30);
-    const dx = dog.tx - dog.x; if (Math.abs(dx) > 3) { dog.x += clamp(dx, -250 * dt, 250 * dt); dog.f = dx > 0 ? 1 : -1; }
-    dog.vy += 1250 * dt; dog.y += dog.vy * dt; if (dog.y > GY) { dog.y = GY; dog.vy = 0; }
+    if (keys.ArrowLeft || keys.KeyA) dog.tx = clamp(dog.tx - 300 * dt, 30, W - 30); if (keys.ArrowRight || keys.KeyD) dog.tx = clamp(dog.tx + 300 * dt, 30, W - 30);
+    const dx = dog.tx - dog.x; if (Math.abs(dx) > 3) { dog.x += clamp(dx, -280 * dt, 280 * dt); dog.f = dx > 0 ? 1 : -1; }
+    dog.vy += 1350 * dt; dog.y += dog.vy * dt; if (dog.y > GY) { dog.y = GY; dog.vy = 0; }
     if (state === 'wait') { waitT -= dt; if (waitT <= 0) launch(); }
     if (fr && state === 'fly') {
-      fr.vy += 150 * dt; fr.vx += wind * dt * .6; if (fr.vy > 0) fr.vy = Math.min(fr.vy, 110); fr.x += fr.vx * dt; fr.y += fr.vy * dt; fr.rot += dt * 14;
-      const mx = dog.x + dog.f * 14, my = dog.y - 22;
-      if (!fr.got && Math.hypot(fr.x - mx, fr.y - my) < 32) {
-        fr.got = true; state = 'caught'; catches++; const air = dog.y < GY - 25, perf = Math.hypot(fr.x - mx, fr.y - my) < 14; const add = 8 + (air ? 4 : 0) + (perf ? 2 : 0); pts += add; sfx('win'); fx.text('+' + add + (air ? ' 🦘' : ''), fr.x, fr.y - 24, '#fde047', 26); fx.burst(fr.x, fr.y, 22, { spd: 170, e: '⭐', size: 4 }); waitT = 1.1; msg = '';
-      } else if (fr.y > GY - 6) { state = 'miss'; waitT = 1; sfx('bad'); fx.text('😢', fr.x, GY - 30, '#fff', 30); }
+      fr.u = Math.min(1, fr.u + dt / fr.T); const q = path(fr, fr.u); fr.x = q.x; fr.y = q.y; fr.rot += dt * 14;
+      const mx = dog.x + dog.f * 16, my = dog.y - 30;
+      if (!fr.got && Math.hypot(fr.x - mx, fr.y - my) < 36) {
+        fr.got = true; state = 'caught'; catches++; const air = dog.y < GY - 25, perf = Math.hypot(fr.x - mx, fr.y - my) < 16; const add = 8 + (air ? 4 : 0) + (perf ? 2 : 0); pts += add; sfx('win'); fx.text('+' + add + (air ? ' 🦘' : ''), fr.x, fr.y - 24, '#fde047', 26); fx.burst(fr.x, fr.y, 22, { spd: 170, e: '⭐', size: 4 }); waitT = 1.1;
+      } else if (fr.u >= 1) { state = 'miss'; waitT = 1; sfx('bad'); fx.text('😢', fr.x, GY - 30, '#fff', 30); }
     }
     if (state === 'miss' || state === 'caught') { waitT -= dt; if (waitT <= 0) { fr = null; state = 'wait'; waitT = .2; } }
     cx.clearRect(0, 0, W, H); fx.begin(cx);
     GK.grad(cx, W, H, ['#7dd3fc', '#e0f2fe']); GK.cloud(cx, 60 + (t * 8) % 340, 70, 1.4); GK.cloud(cx, 250 - (t * 5) % 300, 130, 1); cx.fillStyle = '#16a34a'; cx.beginPath(); cx.moveTo(0, 330); cx.quadraticCurveTo(100, 290, 220, 330); cx.quadraticCurveTo(300, 360, W, 320); cx.lineTo(W, H); cx.lineTo(0, H); cx.fill();
     cx.fillStyle = '#4ade80'; cx.fillRect(0, GY + 6, W, H - GY); for (let i = 0; i < 14; i++) { cx.fillStyle = 'rgba(0,0,0,.08)'; cx.fillRect(i * 28 + (i % 2) * 6, GY + 6, 2, 80); }
-    [[300, 330], [330, 340]].forEach(p => GK.draw(cx, '🌳', p[0], p[1], 62));
+    GK.draw(cx, '🌳', 330, 340, 62);
     GK.draw(cx, '🧍', 40, 340, 64, 0, false); GK.draw(cx, '🫲', 62, 330, 22, -.4);
+    if (fr && state === 'fly' && fr.u > .3) { cx.globalAlpha = Math.min(.55, (fr.u - .3) * 1.4); cx.fillStyle = '#065f46'; cx.beginPath(); cx.ellipse(fr.xt, GY + 6, 22, 7, 0, 0, 7); cx.fill(); cx.globalAlpha = 1; cx.strokeStyle = 'rgba(253,224,71,.9)'; cx.lineWidth = 3; cx.setLineDash([5, 5]); cx.beginPath(); cx.ellipse(fr.xt, GY + 6, 26, 9, 0, 0, 7); cx.stroke(); cx.setLineDash([]); }
     GK.shadow(cx, dog.x, GY + 8, 24 * (1 - (GY - dog.y) / 260), .25); GK.draw(cx, cfg.me || '🐕', dog.x, dog.y - 24, 60, 0, dog.f < 0, 1, 1, dog.vy < -50 ? 1.1 : 1);
     if (fr) { GK.shadow(cx, fr.x, GY + 8, 10, .18); GK.draw(cx, '🥏', fr.x, fr.y, 30, 0, false, 1, 1, .55 + Math.abs(Math.sin(fr.rot)) * .3); }
     cx.fillStyle = '#fff'; GK.rr(cx, 140, 18, 80, 26, 10); cx.globalAlpha = .6; cx.fill(); cx.globalAlpha = 1; GK.txt(cx, (wind > 8 ? '🌬️ →' : wind < -8 ? '← 🌬️' : '🌬️ ·'), 180, 31, 16, '#1e3a8a');
@@ -168,7 +173,6 @@ GAMES.frisbee = (host, cfg, fin) => {
   GK.count(c.wrap, K, () => { state = 'wait'; waitT = .4; }, '↔ ⬆️');
   return () => K.stop();
 };
-
 /* =====================================================================
    GYM — rep-timing workout with stamina, sets and heavier weights
    ===================================================================== */

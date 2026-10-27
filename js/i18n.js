@@ -84,7 +84,8 @@ const UI = {
   /* game instructions */
   g_timing: T('לחצו כשהסמן בתוך האזור הירוק!', 'Tap when the marker is inside the green zone!', 'اضغط عندما يكون المؤشر داخل المنطقة الخضراء!', 'Нажми, когда маркер в зелёной зоне!', '¡Toca cuando el marcador esté en la zona verde!'),
   g_catch: T('הזיזו את הדמות ותפסו — זהב שווה יותר, מגנט ומגן עוזרים, פצצות מורידות לב!', 'Move to catch — gold is worth more, magnets and shields help, bombs cost a heart!', 'تحرّك للالتقاط — الذهب يساوي أكثر والمغناطيس والدرع يساعدان والقنابل تُنقص قلبًا!', 'Двигайся и лови — золото дороже, магнит и щит помогают, бомбы отнимают сердце!', 'Muévete y atrapa: el oro vale más, el imán y el escudo ayudan, ¡las bombas quitan un corazón!'),
-  gm_go: T('קדימה!', 'GO!', 'انطلق!', 'ПОЕХАЛИ!', '¡YA!'),
+  gm_early: T('מוקדם מדי!', 'Too early!', 'مبكر جدًا!', 'Слишком рано!', '¡Demasiado pronto!'),
+  gm_ross: T('רוס עוזר!', 'Ross helps!', 'روس يساعد!', 'Росс помогает!', '¡Ross ayuda!'),  gm_go: T('קדימה!', 'GO!', 'انطلق!', 'ПОЕХАЛИ!', '¡YA!'),
   gm_goal: T('גוווול!', 'GOAL!', 'هدف!', 'ГОЛ!', '¡GOL!'),
   gm_aim: T('כוונו', 'Aim', 'صوّب', 'Цельсь', 'Apunta'),
   gm_serve: T('הגשה', 'Serve', 'إرسال', 'Подача', 'Saque'),
@@ -149,6 +150,10 @@ const UI = {
   watch: T('צפו...', 'Watch...', 'شاهد...', 'Смотри...', 'Mira...'),
   yourturn: T('התור שלכם!', 'Your turn!', 'دورك!', 'Твой ход!', '¡Tu turno!'),
   /* missions & story */
+  m_laundry: T("לכבסו את הבגדים של האגזי", "Wash Hugsy's outfit", 'اغسل ملابس هاغزي', 'Постирай одежду Хагзи', 'Lava la ropa de Hugsy'),
+  hg_dirty: T('🧺 הבגדים של האגזי התלכלכו! הגיע הזמן לכביסה.', "🧺 Hugsy's outfit is getting dirty! Time for laundry.", '🧺 ملابس هاغزي اتّسخت! حان وقت الغسيل.', '🧺 Одежда Хагзи испачкалась! Пора стирать.', '🧺 ¡La ropa de Hugsy se ensucia! Hora de la colada.'),
+  laundry_done: T('✨ הווסט, הכובע, המשקפיים והצעיף נקיים ונוצצים!', '✨ Vest, beanie, goggles and scarf are squeaky clean!', '✨ السترة والقبعة والنظارات والوشاح نظيفة ولامعة!', '✨ Жилет, шапка, очки и шарф сияют чистотой!', '✨ ¡Chaleco, gorro, gafas y bufanda relucientes!'),
+  outfit: T('בגדים', 'Outfit', 'الملابس', 'Одежда', 'Ropa'),
   m_title: T('משימות יומיות', 'Daily missions', 'مهام اليوم', 'Задания дня', 'Misiones diarias'),
   m_new: T('משימות חדשות בכל יום!', 'New missions every day!', 'مهام جديدة كل يوم!', 'Новые задания каждый день!', '¡Misiones nuevas cada día!'),
   claim: T('איסוף', 'Claim', 'استلام', 'Забрать', 'Cobrar'),

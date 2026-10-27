@@ -116,6 +116,7 @@ const AM = {
   'hugsy.smelly': ['rhythm', { pads: ['🎸', '🎤', '🥁', '🎹'], me: '🧑‍🎤', theme: 'night', notes: 34 }],
   'hugsy.jokes': ['whack', { good: ['😂'], bad: ['😐'], gold: '🤣', boss: '🤪', hole: '#7c3aed', theme: 'night' }],
   'hugsy.pivot': ['pivot', {}],
+  'hugsy.laundry': ['chain', { parts: [{ g: 'wash', icon: '🦺', cfg: { mode: 'bath', art: 'hvest', secs: 75 } }, { g: 'wash', icon: '🧢', cfg: { mode: 'clean', art: 'hbeanie', secs: 60 } }, { g: 'wash', icon: '🥽', cfg: { mode: 'clean', art: 'hgoggles', secs: 60 } }, { g: 'wash', icon: '🧣', cfg: { mode: 'clean', art: 'hscarf', secs: 60 } }] }],
   'hugsy.monicacook': ['cook', { steps: ['add:🍝', 'chop:🍅', 'add:🧀', 'mix', 'bake', 'season'], extra: ['🧦', '🍋', '🥕'], pot: '🍲' }],
 
   /* ---- Mom ---- */

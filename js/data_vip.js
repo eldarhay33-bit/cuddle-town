@@ -16,7 +16,7 @@ const HUGSY_COMP = {
 const HUGSY_CAMEO = { kitchen: 'monica', studio: 'rachel', set: 'chandler', gym: 'ross', monica: 'phoebe' };
 
 WORLDS.hugsy = {
-  id: 'hugsy', e: '🐧', col: '#1d4ed8', art: 'hugsy', kind: 'pet', vip: true,
+  id: 'hugsy', e: '🐧', col: '#1d4ed8', art: 'hugsy', kind: 'pet', vip: true, outfit: true,
   n: T('האגזי', 'Hugsy', 'هاغزي', 'Хагзи', 'Hugsy'),
   desc: T("הפינגווין של ג'ואי — כוכב קופסת הדגנים והרופא של הדרמה", "Joey's penguin pal — cereal-box star and soap-opera doctor", 'صديق جوي البطريق — نجم علبة الحبوب وطبيب المسلسل', 'Пингвин Джои — звезда коробки хлопьев и доктор из сериала', 'El pingüino de Joey: estrella de la caja de cereales y doctor de la serie'),
   stats: ['hunger', 'fun', 'energy', 'clean', 'love', 'fame'], care: ['feed', 'wash', 'sleep', 'cuddle'],
@@ -36,6 +36,7 @@ WORLDS.hugsy = {
     A('foosball', '⚽', T('כדורגל שולחן', 'Foosball match', 'كرة الطاولة', 'Настольный футбол', 'Futbolín'), 'timing', { icon: '⚽', rounds: 5 }, 1, {}, { room: 'living' }),
     A('dance', '💃', T('מסיבת ריקודים', 'Dance party', 'حفلة رقص', 'Танцевальная вечеринка', 'Fiesta de baile'), 'simon', { pads: ['💃', '🕺', '🎵', '🪩'], rounds: 5 }, 2, {}, { room: 'living' }),
     A('hidepeng', '🙈', T('מחבואים בדירה', 'Hide & seek in the apartment', 'غميضة في الشقة', 'Прятки в квартире', 'Escondite en el piso'), 'whack', { good: ['🐧'], bad: ['🦆', '🐔'] }, 2, {}, { room: 'living' }),
+    A('laundry', '🧺', T('כביסה: הבגדים של האגזי', "Laundry day: Hugsy's outfit", 'يوم الغسيل: ملابس هاغزي', 'Стирка: одежда Хагзи', 'Día de colada: la ropa de Hugsy'), 'wash', {}, 1, { clean: 4 }, { room: 'living', cost: 8 }),
     A('pillow', '🛋️', T('מבצר כריות', 'Cushion fortress', 'حصن الوسائد', 'Крепость из подушек', 'Fortaleza de cojines'), 'stack', { top: '🛋️', floors: 9 }, 3, {}, { room: 'living' }),
     /* kitchen */
     A('special', '🍕', 'The Joey Special 🍕🍕', 'tug', { foe: '🦆', icon: '🐧' }, 1, { hunger: 8 }, { room: 'kitchen' }),
@@ -81,7 +82,8 @@ WORLDS.hugsy = {
     S(T("צ'נדלר מלמד אותו תזמון קומי. אספו את הבדיחות.", 'Chandler teaches him comic timing. Collect the jokes.', 'تشاندلر يعلّمه التوقيت الكوميدي. اجمع النكات.', 'Чендлер учит его комическому таймингу. Лови шутки.', 'Chandler le enseña el timing cómico. Recoge los chistes.'), 'actid', 'jokes', 2, { c: 70, x: 55 }, 'Could this BE any more funny?'),
     S(T('כרטיסי רמזים ועמידה על הסימן — האולפן מוכן.', 'Cue cards and hitting your mark — the studio is ready.', 'بطاقات التلقين والوقوف على العلامة — الاستوديو جاهز.', 'Карточки и отметка — студия готова.', 'Tarjetas y marca: el estudio está listo.'), 'actid', 'cuecards', 2, { c: 80, x: 60 }, 'Say it like you mean it, pal!'),
     S(T('הגיעו לרמה 9 — האודישן מתקרב.', 'Reach level 9 — the audition is near.', 'صلْ إلى المستوى 9 — الاختبار يقترب.', 'Достигни 9 уровня — прослушивание близко.', 'Llega al nivel 9: la audición se acerca.'), 'lv', null, 9, { c: 100, x: 40 }, 'Almost there, buddy!'),
-    S(T('האודישן הגדול! האגזי מקבל את תפקיד הרופא.', 'The big audition! Hugsy lands the doctor role.', 'الاختبار الكبير! هاغزي ينال دور الطبيب.', 'Большое прослушивание! Хагзи получает роль доктора.', '¡La gran audición! Hugsy consigue el papel de doctor.'), 'actid', 'audition', 1, { c: 250, x: 150, i: 'labcoat' }, 'WE DID IT! Dr. Hugsy, ladies and gentlemen!')
+    S(T('האודישן הגדול! האגזי מקבל את תפקיד הרופא.', 'The big audition! Hugsy lands the doctor role.', 'الاختبار الكبير! هاغزي ينال دور الطبيب.', 'Большое прослушивание! Хагзи получает роль доктора.', '¡La gran audición! Hugsy consigue el papel de doctor.'), 'actid', 'audition', 1, { c: 250, x: 150, i: 'labcoat' }, 'WE DID IT! Dr. Hugsy, ladies and gentlemen!'),
+    S(T('אפילוג: יום כביסה! אפילו כוכבים מכבסים את הווסט, הכובע, המשקפיים והצעיף.', "Epilogue: laundry day! Even stars wash the vest, beanie, goggles and scarf.", 'خاتمة: يوم الغسيل! حتى النجوم تغسل السترة والقبعة والنظارات والوشاح.', 'Эпилог: день стирки! Даже звёзды стирают жилет, шапку, очки и шарф.', 'Epílogo: ¡día de colada! Hasta las estrellas lavan el chaleco, el gorro, las gafas y la bufanda.'), 'actid', 'laundry', 1, { c: 60, x: 50 }, 'Fresh vest, fresh start, buddy!')
   ],
   quotes: [],
   sleep: T("ג'ואי מכסה אותו בשמיכה... לילה טוב 🌙", 'Joey tucks him in... good night 🌙', 'جوي يغطّيه بالبطانية... ليلة سعيدة 🌙', 'Джои укрывает его одеялом... спокойной ночи 🌙', 'Joey lo arropa... buenas noches 🌙')

@@ -351,35 +351,76 @@ GAMES.pour = (host, cfg, fin) => {
 };
 
 /* =====================================================================
-   PIVOT — get the sofa around the corners: rotate at exactly the right time
+   PIVOT — carry the sofa up the stairwell. Ross calls the corner: tap PIVOT!
+   anywhere while the sofa is inside the green zone (time slows down there).
+   Forgiving and always winnable: if you miss, Ross muscles it round the corner.
    ===================================================================== */
 GAMES.pivot = (host, cfg, fin) => {
-  const K = killer(), d = cfg.d || .3, W = 360, H = 460, N = cfg.corners || 5;
+  const K = killer(), d = cfg.d || .3, W = 360, H = 460, N = clamp(cfg.corners || 5, 2, 5), ZONE = 100, IDEAL = 34, SWEET = 18, DY = 84, OY = 62;
   const hud = GK.hud(host), c = GK.canvas(host, W, H), cx = c.cx, fx = new GK.Fx();
-  // staircase path: alternating right/down segments
-  const pts = [{ x: 40, y: 60 }]; for (let i = 0; i < N; i++) { const l = pts[pts.length - 1]; pts.push({ x: l.x + (i % 2 === 0 ? 110 : 0), y: l.y + (i % 2 === 0 ? 0 : 80) }); } pts.push({ x: pts[pts.length - 1].x + 80, y: pts[pts.length - 1].y });
-  const segs = []; for (let i = 0; i < pts.length - 1; i++) segs.push({ a: pts[i], b: pts[i + 1], ang: pts[i + 1].x === pts[i].x ? 90 : 0 });
-  let segBumps = 0, si = 0, u = 0, ang = 0, tang = 0, speed = 55 + d * 35, bumps = 0, clean = 0, t = 0, over = false, cd = 0, ok = true, pause = 0, scale = 1;
-  function pivot() { if (cd > 0 || over) return; tang = tang === 0 ? 90 : 0; cd = .2; sfx('pop'); fx.text('PIVOT!', W / 2, 60, '#fde047', 28); }
-  GK.input(K, c, { down() { pivot(); } }); GK.keys(K, code => { if (code === 'Space') pivot(); });
-  const sof = () => { const s = segs[si], l = Math.hypot(s.b.x - s.a.x, s.b.y - s.a.y), x = GK.lerp(s.a.x, s.b.x, u / l), y = GK.lerp(s.a.y, s.b.y, u / l); return { x, y, l }; };
-  function end() { if (over) return; over = true; sfx('win'); K.after(() => fin(clamp(clean / N * 80 + (N - bumps) / N * 20, 0, 100), ['🛋️ ' + clean + '/' + N, '💥 ' + bumps]), 700); }
+  const DX = Math.min(90, (W - 40 - 40 - (N % 2 === 0 ? 62 : 0)) / Math.ceil(N / 2));
+  const P = [{ x: 42, y: 0 }];
+  for (let i = 0; i < N; i++) { const l = P[P.length - 1]; P.push(i % 2 === 0 ? { x: l.x + DX, y: l.y } : { x: l.x, y: l.y + DY }); }
+  { const l = P[P.length - 1]; P.push(N % 2 === 1 ? { x: l.x, y: l.y + 62 } : { x: l.x + 62, y: l.y }); }
+  const segs = P.slice(1).map((b, i) => { const a = P[i], len = Math.hypot(b.x - a.x, b.y - a.y); return { a, b, len, zl: Math.min(ZONE, len - 12), ang: i % 2 === 0 ? 0 : 90 }; });
+  const at = (i, uu) => { const s = segs[i], k = clamp(uu / s.len, 0, 1); return { x: GK.lerp(s.a.x, s.b.x, k), y: GK.lerp(s.a.y, s.b.y, k) + OY }; };
+  const stroke = (w, col) => { cx.strokeStyle = col; cx.lineWidth = w; cx.beginPath(); P.forEach((q, i) => i ? cx.lineTo(q.x, q.y + OY) : cx.moveTo(q.x, q.y + OY)); cx.stroke(); };
+  const band = (i, r0, r1, w, col) => { const s = segs[i], a = at(i, s.len - r0), b = at(i, s.len - r1); cx.strokeStyle = col; cx.lineWidth = w; cx.beginPath(); cx.moveTo(a.x, a.y); cx.lineTo(b.x, b.y); cx.stroke(); };
+  let go = false, si = 0, u = 0, ang = 0, pivoted = false, stuck = 0, cool = 0, shake = 0, t = 0, over = false, bumps = 0, perfects = 0, rossImg = null; const scores = [];
+  const speed = 64 + d * 26, SLOW = .45;
+  GK.artImg('ross', {}, im => { rossImg = im; });
+  function pivot() {
+    if (!go || over || si >= N || pivoted || stuck > 0 || cool > 0) return;
+    const rem = segs[si].len - u;
+    if (rem > segs[si].zl) { cool = .45; sfx('bad'); fx.text(ui('gm_early'), 180, 326, '#fca5a5', 22); return; }
+    const off = Math.abs(rem - IDEAL), sc = off <= SWEET ? 100 : clamp(100 - (off - SWEET) * .55, 60, 100), q = at(si, u);
+    pivoted = true; scores.push(sc); if (sc >= 96) perfects++;
+    sfx(sc >= 96 ? 'win' : 'ok'); fx.text(sc >= 96 ? ui('perfect') + ' PIVOT!' : 'PIVOT!', 180, 326, sc >= 96 ? '#fde047' : '#fff', 28); fx.burst(q.x, q.y, 14, { spd: 140, life: .6, size: 4 });
+  }
+  GK.input(K, c, { down() { pivot(); } }); GK.keys(K, code => { if (code === 'Space' || code === 'Enter') pivot(); });
+  function end() { if (over) return; over = true; sfx('win'); const avg = scores.reduce((a, b) => a + b, 0) / Math.max(1, N); K.after(() => fin(clamp(avg, 0, 100), ['🛋️ ' + scores.filter(s => s >= 60).length + '/' + N, '⭐ ' + perfects, '💥 ' + bumps]), 600); }
+  function sofa(x, y, a) {
+    GK.shadow(cx, x + 3, y + 15, 42, .24); cx.save(); cx.translate(x, y); cx.rotate(a * Math.PI / 180);
+    cx.fillStyle = '#7c2d12'; GK.rr(cx, -41, -18, 82, 36, 10); cx.fill();
+    cx.fillStyle = '#c2410c'; GK.rr(cx, -39, -17, 78, 13, 8); cx.fill();
+    cx.fillStyle = '#ea580c'; [-25, 0, 25].forEach(o => { GK.rr(cx, o - 11.5, -6, 23, 21, 6); cx.fill(); });
+    cx.fillStyle = '#fb923c'; [-25, 0, 25].forEach(o => { GK.rr(cx, o - 10, -5, 20, 6, 3); cx.fill(); });
+    cx.fillStyle = '#9a3412'; GK.rr(cx, -41, -16, 9, 32, 5); cx.fill(); GK.rr(cx, 32, -16, 9, 32, 5); cx.fill();
+    cx.fillStyle = 'rgba(255,255,255,.2)'; GK.rr(cx, -37, -16, 74, 3, 1.5); cx.fill(); cx.restore();
+  }
   K.loop(dt => {
-    if (over) return; t += dt; cd -= dt; fx.update(dt); if (t > 80) { end(); return; } ang += clamp(tang - ang, -420 * dt, 420 * dt); pause = Math.max(0, pause - dt);
-    const s = segs[si], p = sof(), need = s.ang, mis = Math.abs(((ang - need) % 180 + 180) % 180), off = Math.min(mis, 180 - mis);
-    const inCorner = p.l - u < 26 && si < segs.length - 1; const nextNeed = segs[Math.min(si + 1, segs.length - 1)].ang; const offN = Math.min(Math.abs(((ang - nextNeed) % 180 + 180) % 180), 180 - Math.abs(((ang - nextNeed) % 180 + 180) % 180));
-    let blocked = false;
-    if (off > 28 && u > 6 && u < p.l - 10) { blocked = true; } if (inCorner && offN > 28) blocked = true;
-    if (blocked) { if (pause <= 0) { bumps++; segBumps++; pause = .5; sfx('bad'); fx.shake(.4); fx.text('💥', p.x, p.y - 20, '#fff', 26); u = Math.max(0, u - 14); if (si > 0 && u < 2) { } } } else if (pause <= 0) u += speed * dt * (1 - Math.min(.5, off / 120));
-    if (u >= p.l) { if (offN <= 28 || si >= segs.length - 1) { if (segBumps === 0) clean++; segBumps = 0; if (si < segs.length - 1) { sfx('ok'); fx.text('✓', p.x, p.y - 20, '#4ade80', 24); } si++; u = 0; if (si >= segs.length) { end(); } } else { u = p.l - 8; pause = .4; bumps++; segBumps++; sfx('bad'); } }
-    cx.clearRect(0, 0, W, H); fx.begin(cx); GK.grad(cx, W, H, ['#fde68a', '#fcd34d']); cx.fillStyle = '#7c2d12'; cx.fillRect(0, 0, W, H); cx.fillStyle = '#9a3412'; for (let i = 0; i < 12; i++) cx.fillRect(0, i * 40, W, 3);
-    cx.lineCap = 'butt'; cx.lineJoin = 'miter'; cx.strokeStyle = '#fef3c7'; cx.lineWidth = 56; cx.beginPath(); pts.forEach((q, i) => i ? cx.lineTo(q.x, q.y + 100) : cx.moveTo(q.x, q.y + 100)); cx.stroke(); cx.strokeStyle = '#d6b98c'; cx.lineWidth = 50; cx.beginPath(); pts.forEach((q, i) => i ? cx.lineTo(q.x, q.y + 100) : cx.moveTo(q.x, q.y + 100)); cx.stroke();
-    pts.forEach((q, i) => { if (i > 0 && i < pts.length - 1) { cx.fillStyle = 'rgba(239,68,68,.25)'; cx.beginPath(); cx.arc(q.x, q.y + 100, 30, 0, 7); cx.fill(); } });
-    const sp2 = sof(); cx.save(); cx.translate(sp2.x, sp2.y + 100); cx.rotate(ang * Math.PI / 180); cx.fillStyle = '#ea580c'; GK.rr(cx, -36, -14, 72, 28, 8); cx.fill(); cx.fillStyle = '#c2410c'; GK.rr(cx, -36, -14, 72, 8, 4); cx.fill(); cx.fillStyle = '#fb923c'; GK.rr(cx, -30, -4, 60, 14, 5); cx.fill(); cx.restore();
-    GK.txt(cx, '🛋️', W / 2 - 100, 28, 30); const bw = 200; cx.fillStyle = 'rgba(0,0,0,.4)'; GK.rr(cx, 60, 360, 240, 70, 20); cx.fill(); GK.txt(cx, 'PIVOT!', 180, 395, 36, '#fde047');
+    if (over) return; t += dt; cool = Math.max(0, cool - dt); shake = Math.max(0, shake - dt); fx.update(dt);
+    const s = segs[si], rem = s.len - u, inZone = go && si < N && !pivoted && stuck <= 0 && rem <= s.zl;
+    if (go) {
+      if (stuck > 0) { stuck -= dt; if (stuck <= 0) pivoted = true; }
+      else if (si < N && !pivoted && rem <= 3) { stuck = .9; bumps++; shake = .6; scores.push(20); sfx('bad'); fx.shake(.5); fx.text('💥 ' + ui('gm_ross'), 180, 326, '#fff', 22); }
+      else u += speed * (inZone ? SLOW : pivoted ? 1.5 : 1) * dt;
+      if (u > s.len) u = s.len;
+      if (u >= s.len && (pivoted || si >= N)) { if (si >= N) end(); else { si++; u = 0; pivoted = false; } }
+    }
+    const cur = segs[Math.min(si, segs.length - 1)], tgt = pivoted && si < N ? segs[si + 1].ang : cur.ang; ang += clamp(tgt - ang, -380 * dt, 380 * dt);
+    const pos = at(Math.min(si, segs.length - 1), u);
+    cx.clearRect(0, 0, W, H); fx.begin(cx); GK.grad(cx, W, H, ['#78350f', '#451a03']); cx.fillStyle = 'rgba(0,0,0,.12)'; for (let i = 0; i < 12; i++) cx.fillRect(0, i * 40, W, 3);
+    cx.lineCap = 'butt'; cx.lineJoin = 'miter'; stroke(70, '#2a1005'); stroke(62, '#fef3c7'); stroke(54, '#e7d3a8');
+    if (si < N && !pivoted) { const z = segs[si].zl; band(si, z, 0, 48, 'rgba(34,197,94,.30)'); band(si, IDEAL + SWEET, IDEAL - SWEET, 48, 'rgba(250,204,21,.55)'); band(si, IDEAL - SWEET, 0, 48, 'rgba(239,68,68,.22)'); }
+    for (let k = 0; k < N; k++) { const q = P[k + 1], past = k < si || (k === si && pivoted); cx.fillStyle = past ? 'rgba(34,197,94,.3)' : k === si ? 'rgba(250,204,21,.28)' : 'rgba(239,68,68,.16)'; cx.beginPath(); cx.arc(q.x, q.y + OY, 15, 0, 7); cx.fill(); GK.txt(cx, past ? '✓' : String(k + 1), q.x, q.y + OY, 15, past ? '#4ade80' : '#fff'); }
+    sofa(pos.x + (shake > 0 ? Math.sin(t * 70) * 4 : 0), pos.y, ang);
+    if (si < N) {
+      const q = P[si + 1], dx = segs[si].ang === 0 ? 8 : 40, dy = segs[si].ang === 0 ? -46 : 4;
+      if (rossImg) { cx.drawImage(rossImg, q.x + dx - 22, q.y + OY + dy - 34, 44, 94); } else GK.draw(cx, '🧔', q.x + dx, q.y + OY + dy, 44);
+      if (inZone) { const bx = clamp(q.x + dx - 52, 6, W - 112), by = Math.max(4, q.y + OY + dy - 64); cx.fillStyle = '#fff'; GK.rr(cx, bx, by, 104, 30, 12); cx.fill(); GK.txt(cx, 'PIVOT!', bx + 52, by + 15, 20, '#dc2626'); }
+    }
+    /* timing meter + button */
+    const mx = 36, mw = 288, my = 352; GK.rr(cx, mx, my, mw, 22, 11); cx.fillStyle = 'rgba(0,0,0,.4)'; cx.fill();
+    if (si < N) {
+      const z = segs[si].zl, f0 = (z - (IDEAL + SWEET)) / z, f1 = (z - (IDEAL - SWEET)) / z;
+      cx.fillStyle = 'rgba(34,197,94,.55)'; GK.rr(cx, mx + 2, my + 2, f0 * mw, 18, 8); cx.fill(); cx.fillStyle = '#facc15'; cx.fillRect(mx + f0 * mw, my + 2, (f1 - f0) * mw, 18); cx.fillStyle = 'rgba(239,68,68,.6)'; cx.fillRect(mx + f1 * mw, my + 2, (1 - f1) * mw - 2, 18);
+      const nd = clamp(1 - rem / z, 0, 1); cx.fillStyle = inZone ? '#fff' : 'rgba(255,255,255,.35)'; cx.fillRect(mx + nd * (mw - 6), my - 5, 6, 32);
+    }
+    GK.rr(cx, 60, 392, 240, 54, 20); cx.fillStyle = inZone ? '#22c55e' : 'rgba(0,0,0,.45)'; cx.fill(); cx.strokeStyle = inZone ? '#bbf7d0' : 'rgba(255,255,255,.2)'; cx.lineWidth = 3; cx.stroke(); GK.txt(cx, 'PIVOT!', 180, 420, 30, inZone ? '#fff' : '#fde047');
     fx.draw(cx); fx.end(cx);
-    hud.set('🛋️ ' + Math.min(si, segs.length - 1) + '/' + (segs.length - 1), '✓ ' + clean, '💥 ' + bumps);
+    hud.set('🛋️ ' + Math.min(si, N) + '/' + N, '✓ ' + scores.filter(x => x >= 60).length, '💥 ' + bumps);
   });
-  GK.count(c.wrap, K, () => { }, '👆 PIVOT!');
+  GK.count(c.wrap, K, () => { go = true; }, '👆 PIVOT!');
   return () => K.stop();
 };

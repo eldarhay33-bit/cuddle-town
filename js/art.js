@@ -45,29 +45,6 @@ function wearSVG(w, anc) {
 const shadow = (cx, cy, rx) => `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="8" fill="#000" opacity=".16"/>`;
 const gloss = (cx, cy, rx, ry, rot) => `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" transform="rotate(${rot || -25} ${cx} ${cy})" fill="#fff" opacity=".2"/>`;
 
-/* ===== Hugsy (penguin) ===== */
-ART.hugsy = function (o) {
-  const m = o.mood || 'happy', a = uid(), b = uid(), c = uid();
-  const anc = { head: [100, 46, 46], face: [100, 84, 44], neck: [100, 118, 38], body: [100, 160, 54] };
-  return svgw(`<defs>${rg(a, '#4d6073', '#141b24')}${rg(b, '#ffffff', '#d9e2ec')}${lg(c, '#ffc857', '#ee8200')}</defs>${shadow(100, 208, 62)}
-  <g class="bob">
-  <ellipse cx="72" cy="199" rx="21" ry="9" fill="url(#${c})" ${OL}/><ellipse cx="128" cy="199" rx="21" ry="9" fill="url(#${c})" ${OL}/>
-  <path d="M60 198l-4 5M72 202v5M84 198l4 5M116 198l-4 5M128 202v5M140 198l4 5" stroke="#c76b00" stroke-width="3" stroke-linecap="round"/>
-  <g class="wingL"><path d="M50 118 Q12 150 38 178 Q60 156 62 124Z" fill="url(#${a})" ${OL}/></g>
-  <g class="wingR"><path d="M150 118 Q188 150 162 178 Q140 156 138 124Z" fill="url(#${a})" ${OL}/></g>
-  <ellipse cx="100" cy="128" rx="57" ry="74" fill="url(#${a})" ${OL}/>
-  <ellipse cx="100" cy="148" rx="39" ry="54" fill="url(#${b})"/>
-  <ellipse cx="100" cy="158" rx="30" ry="40" fill="#fff" opacity=".35"/>
-  <circle cx="79" cy="86" r="19" fill="url(#${b})"/><circle cx="121" cy="86" r="19" fill="url(#${b})"/>
-  ${eyesSVG(79, 121, 86, m, { r: 7.5 })}
-  <path d="M85 100 Q100 93 115 100 Q100 124 85 100Z" fill="url(#${c})" ${OL}/><path d="M92 99 Q100 96 108 99" stroke="#fff" stroke-width="2" fill="none" opacity=".6" stroke-linecap="round"/>
-  ${m === 'eat' ? '<ellipse class="chew" cx="100" cy="112" rx="8" ry="6" fill="#d96a00"/>' : ''}
-  ${m === 'sad' ? '<path d="M92 126q8 -6 16 0" stroke="#555" stroke-width="3" fill="none" stroke-linecap="round"/>' : ''}
-  ${cheeks(62, 138, 102, 9)}${gloss(76, 62, 14, 26, -20)}
-  ${wearSVG(o.worn, anc)}
-  </g>`);
-};
-
 /* ===== Dubi MH (bear, green jersey) ===== */
 ART.dubi = function (o) {
   const m = o.mood || 'happy', a = uid(), b = uid(), c = uid();

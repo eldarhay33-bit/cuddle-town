@@ -14,11 +14,27 @@ GAMES.wash = (host, cfg, fin) => {
   const N = GW * GH, mask = new Uint8Array(N), st = new Float32Array(N), foam = new Float32Array(N), wet = new Uint8Array(N), kind = new Uint8Array(N);
   const cxm = GX0 + GW * CS / 2, cym = GY0 + GH * CS / 2;
   for (let i = 0; i < N; i++) { const x = GX0 + (i % GW) * CS + CS / 2, y = GY0 + Math.floor(i / GW) * CS + CS / 2; mask[i] = Math.hypot((x - cxm) / 118, (y - cym) / 118) < 1 ? 1 : 0; }
-  const nb = 9 + Math.round(d * 7); const stainCols = { 0: '#7b5a3a', 1: '#4b5563', 2: '#b45309' };
-  for (let b = 0; b < nb; b++) { const a = rnd(0, 6.28), r = rnd(0, 92), bx = cxm + Math.cos(a) * r, by = cym + Math.sin(a) * r, br = rnd(14, 28), kd = ri(0, 2); for (let i = 0; i < N; i++) { if (!mask[i]) continue; const x = GX0 + (i % GW) * CS + CS / 2, y = GY0 + Math.floor(i / GW) * CS + CS / 2; if (Math.hypot(x - bx, y - by) < br * (.7 + .5 * Math.sin(i))) { st[i] = kd === 1 ? 2.4 : kd === 2 ? 1.6 : 1; kind[i] = kd; } } }
-  let dirtyTotal = 0; for (let i = 0; i < N; i++) if (st[i] > 0) dirtyTotal++;
+  const mask0 = mask.slice(), nb = 9 + Math.round(d * 7); const stainCols = { 0: '#7b5a3a', 1: '#4b5563', 2: '#b45309' };
+  const dirtyAt0 = new Uint8Array(N); let dirtyTotal = 0;
+  function seedStains() { // stains only land on cells that belong to the subject
+    st.fill(0); kind.fill(0); dirtyAt0.fill(0); const cells = []; for (let i = 0; i < N; i++) if (mask[i]) cells.push(i);
+    const blobs = Math.max(4, Math.round(nb * Math.min(1, cells.length / 430)));
+    for (let b = 0; b < blobs; b++) { const ci = cells.length ? pick(cells) : 0, bx = GX0 + (ci % GW) * CS + CS / 2 + rnd(-4, 4), by = GY0 + Math.floor(ci / GW) * CS + CS / 2 + rnd(-4, 4), br = rnd(13, 26), kd = ri(0, 2); for (let i = 0; i < N; i++) { if (!mask[i]) continue; const x = GX0 + (i % GW) * CS + CS / 2, y = GY0 + Math.floor(i / GW) * CS + CS / 2; if (Math.hypot(x - bx, y - by) < br * (.7 + .5 * Math.sin(i))) { st[i] = kd === 1 ? 2.4 : kd === 2 ? 1.6 : 1; kind[i] = kd; } } }
+    dirtyTotal = 0; for (let i = 0; i < N; i++) if (st[i] > 0) { dirtyTotal++; dirtyAt0[i] = 1; }
+  }
+  seedStains();
+  function maskFromImage() { // use the artwork's silhouette instead of a plain circle
+    try {
+      const oc = document.createElement('canvas'); oc.width = W; oc.height = H; const ox = oc.getContext('2d'), ar = img.width / img.height;
+      ox.drawImage(img, cxm - 120 * ar * .98, cym - 120 + 4, 240 * ar * .98 * .98, 240 * .98);
+      const px = ox.getImageData(0, 0, W, H).data; let cnt = 0;
+      for (let i = 0; i < N; i++) { const x = GX0 + (i % GW) * CS + CS / 2, y = GY0 + Math.floor(i / GW) * CS + CS / 2; mask[i] = px[((y | 0) * W + (x | 0)) * 4 + 3] > 70 ? 1 : 0; cnt += mask[i]; }
+      if (cnt < 24) mask.set(mask0);
+    } catch (e) { mask.set(mask0); }
+    seedStains();
+  }
   let phaseReady = false, phase = 0, left = TT, t = 0, over = false, ptr = { x: 180, y: 380, down: false, px: 180, py: 380, spd: 0, trail: [] }, prog = 0, phaseScore = [], target = 1, duckList = [], ducks = 0, img = null, foamTotal = 0, wetTotal = 0, bonusT = 4;
-  const subj = cfg.art ? GK.artImg(cfg.art, { mood: 'sad' }, im => { img = im; }) : null;
+  const subj = cfg.art ? GK.artImg(cfg.art, { mood: 'sad' }, im => { img = im; if (!phaseReady && phase === 0) maskFromImage(); }) : null;
   GK.input(K, c, { down(p) { ptr.down = true; ptr.x = ptr.px = p.x; ptr.y = ptr.py = p.y; ptr.trail = [{ x: p.x, y: p.y }]; duckTap(p); }, move(p) { if (ptr.down) { const a = ptr.trail.length ? ptr.trail[ptr.trail.length - 1] : { x: ptr.x, y: ptr.y }; const n = Math.max(1, Math.ceil(Math.hypot(p.x - a.x, p.y - a.y) / 6)); for (let k = 1; k <= n; k++) ptr.trail.push({ x: GK.lerp(a.x, p.x, k / n), y: GK.lerp(a.y, p.y, k / n) }); } ptr.x = p.x; ptr.y = p.y; }, up() { ptr.down = false; } });
   function duckTap(p) { duckList.forEach(dk => { if (!dk.dead && Math.hypot(dk.x - p.x, dk.y - p.y) < 30) { dk.dead = true; ducks++; sfx('coin'); fx.text('+3', dk.x, dk.y, '#fde047', 22); fx.burst(dk.x, dk.y, 10, { spd: 120, e: '🫧', size: 3 }); } }); }
   const cur = () => PH[phase];
@@ -40,7 +56,6 @@ GAMES.wash = (host, cfg, fin) => {
     if (p === 'dry' || p === 'shine') { let r = 0; for (let i = 0; i < N; i++) if (wet[i]) r++; return 1 - r / Math.max(1, wetTotal); }
     return 1;
   }
-  const dirtyAt0 = new Uint8Array(N); for (let i = 0; i < N; i++) if (st[i] > 0) dirtyAt0[i] = 1;
   function end(done) { if (over) return; over = true; sfx(done ? 'win' : 'bad'); const base = phaseScore.reduce((a, b) => a + b, 0) / PH.length * 78; K.after(() => fin(clamp(base + (done ? 12 + left / TT * 10 : 0) + ducks * 2, 0, 100), ['🧼 ' + phaseScore.length + '/' + PH.length, '🦆 ' + ducks]), 700); }
   function advance() { phaseReady = false; phaseScore.push(1); sfx('ok'); fx.burst(180, 230, 24, { spd: 190, e: '✨', size: 4 }); phase++; if (phase >= PH.length) { end(true); } else K.after(startPhase, 600); }
   K.loop(dt => {

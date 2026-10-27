@@ -91,6 +91,9 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 .tile-card small{opacity:.7;font-size:12px}
 .tile-card.lock{opacity:.5;filter:grayscale(.7)}
 .tile-card.worn{outline:3px solid var(--c)}
+.tile-card.need{outline:3px solid #a78bfa;animation:needp 1.6s ease-in-out infinite}
+.tile-card .needb{position:absolute;top:-7px;inset-inline-end:-6px;width:24px;height:24px;border-radius:50%;background:#7c3aed;color:#fff;font-weight:900;display:grid;place-items:center;font-size:15px;box-shadow:0 2px 6px #0004}
+@keyframes needp{50%{box-shadow:0 0 0 6px #a78bfa44,0 3px 8px #0002}}
 .stars{color:#f59e0b;letter-spacing:1px}
 .fxrow{display:flex;flex-wrap:wrap;gap:3px;justify-content:center}
 .fxc{background:#dcfce7;color:#14532d;border-radius:999px;padding:1px 7px;font-size:11px;font-weight:700}
@@ -216,6 +219,16 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 .vipin{font:inherit;font-size:22px;text-align:center;padding:12px;border-radius:14px;border:3px solid #ddd6fe;letter-spacing:.1em}
 .vipin.shake{animation:shake .4s;border-color:#f43f5e}
 .vipbad{color:#dc2626;font-weight:700;min-height:20px}
+.accm{display:flex;flex-direction:column;gap:10px}
+.accin{font:inherit;font-size:18px;text-align:center;padding:11px;border-radius:14px;border:3px solid #ddd6fe;direction:ltr;width:100%}
+.accin:focus,.acctx:focus{outline:none;border-color:#7c3aed}
+.acctx{font:12px/1.35 ui-monospace,Consolas,monospace;direction:ltr;text-align:left;padding:10px;border-radius:14px;border:3px solid #ddd6fe;width:100%;resize:vertical;word-break:break-all}
+.acc-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.accchk{display:flex;gap:8px;align-items:center;justify-content:center;font-weight:600;font-size:14px;text-align:start}.accchk input{width:20px;height:20px;accent-color:#7c3aed;flex:none}
+.whoami{margin-top:8px;border:0;background:#fff;border-radius:999px;padding:7px 16px;font-weight:700;font-size:14px;box-shadow:0 2px 8px #0002;color:#6d28d9}
+.whoami.on{background:linear-gradient(135deg,#ede9fe,#fce7f3)}
+#btn-acc.on{box-shadow:0 0 0 3px #22c55e,0 2px 8px #0002}
+#bar{gap:8px}.barb{padding:10px 14px}
 #toasts{position:fixed;top:10px;inset-inline:0;z-index:80;pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:8px}
 .toast{background:#241b4bef;color:#fff;border-radius:16px;padding:10px 18px;font-weight:600;max-width:92vw;text-align:center;box-shadow:0 6px 18px #0005;animation:slidein .3s;transition:.4s}
 .toast.good{background:linear-gradient(135deg,#16a34a,#15803d)}
@@ -281,6 +294,11 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 .sbg{position:absolute;inset:0}.sbg svg{width:100%;height:100%;display:block}
 .scene .deco.bgi{z-index:2;filter:drop-shadow(0 3px 4px #0004)}
 .charwrap{z-index:3}.comp,.cameo{z-index:3}
+.s3cv{position:absolute;inset:0;width:100%;height:100%;z-index:3;touch-action:pan-y;cursor:grab;display:block}
+.s3cv:active{cursor:grabbing}
+.scene.is3d .charwrap,.scene.is3d .comp,.scene.is3d .cameo{visibility:hidden}
+.scene.is3d .bubble{z-index:6}.scene.is3d .fxlayer{z-index:5}
+.s3btn{position:absolute;top:8px;inset-inline-end:8px;z-index:7;border:0;border-radius:999px;padding:6px 12px;font-weight:800;font-size:13px;background:rgba(255,255,255,.88);color:#5b21b6;box-shadow:0 2px 8px #0003;backdrop-filter:blur(4px)}
 .char .art,.comp .art,.cameo .art{filter:drop-shadow(0 6px 6px #0003)}
 .scenewrap{background:linear-gradient(135deg,#fff,#e9d5ff);box-shadow:0 14px 34px #4c1d9540}
 .card{background:linear-gradient(180deg,#fff,#faf5ff)}

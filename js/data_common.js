@@ -161,7 +161,9 @@ const JOEY = {
   shop: ["Ooh, fancy! You'd look great in that!"],
   level: ['Whoa! Level up! That is my penguin!'],
   chapter: ['We did it, Hugsy! High five! ...flipper five!'],
-  friends: ['The gang is all here!', 'Say hi to everybody, buddy!']
+  friends: ['The gang is all here!', 'Say hi to everybody, buddy!'],
+  dirty: ["Hugsy, buddy... that vest has seen better days. Laundry time!", 'Whoa! Is that gravy on the scarf?', "Even a star needs clean goggles, pal."],
+  laundry: ['Fresh and clean! Looking GOOD, buddy!', 'Now THAT is a vest!', 'Smells like a brand new penguin!']
 };
 const FQ = [
   ['Joey', "How you doin'?"], ['Joey', "Joey doesn't share food!"], ['Joey', 'The Joey Special!'], ['Joey', "It's a moo point."],
